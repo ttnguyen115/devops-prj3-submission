@@ -1,5 +1,13 @@
 version: 2.1
 
+commands:
+  notify_on_failure:
+    steps:
+      - slack/notify:
+          event: fail
+          channel: notification_failed_cicd
+          template: basic_fail_1
+
 jobs:
   build-frontend:
     docker:
@@ -97,10 +105,12 @@ workflows:
     jobs:
       - build-frontend
       - build-backend
+
       - test-frontend:
           requires: [build-frontend]
       - test-backend:
           requires: [build-backend]
+      
       - scan-frontend:
           requires: [build-frontend]
       - scan-backend:
