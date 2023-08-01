@@ -8,6 +8,9 @@ commands:
           channel: notification_failed_cicd
           template: basic_fail_1
 
+orbs:
+  slack: circleci/slack@4.10.1
+
 jobs:
   build-frontend:
     docker:
