@@ -33,6 +33,17 @@ commands:
             aws cloudformation delete-stack --stack-name "udapeople-backend-<<parameters.Workflow_ID>>"
             aws cloudformation delete-stack --stack-name "udapeople-frontend-<<parameters.Workflow_ID>>"
 
+  install_ansible:
+    description: Install Ansible
+    steps:
+      - run:
+          name: Install Ansible
+          command: |
+            sudo apt update
+            sudo apt install software-properties-common -y
+            sudo add-apt-repository --yes --update ppa:ansible/ansible
+            sudo apt install ansible -y
+            
 orbs:
   slack: circleci/slack@4.10.1
 
@@ -156,6 +167,23 @@ jobs:
       # Here's where you will add some code to rollback on failure  
       - destroy-environment
 
+  configure-infrastructure:
+    docker:
+      - image: cimg/base:stable
+    steps:
+      - checkout
+      - install_ansible
+      - add_ssh_keys:
+          fingerprints: ["df:b2:f0:dc:98:40:da:1a:b1:a7:21:7b:03:17:dc:36:fe:ec:a5:bc"]
+      - attach_workspace:
+          at: ~/
+      - run:
+          name: Configure server
+          command: |
+            cd .circleci/ansible
+            cat inventory.txt
+            ansible-playbook -i inventory.txt configure-server.yml
+
 workflows:
   default:
     jobs:
@@ -174,3 +202,6 @@ workflows:
 
       - deploy-infrastructure:
           requires: [test-frontend, test-backend, scan-frontend, scan-backend]
+
+      - configure-infrastructure:
+          requires: [deploy-infrastructure]
