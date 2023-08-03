@@ -8,6 +8,16 @@ commands:
           channel: notification_failed_cicd
           template: basic_fail_1
 
+  install_awscli:
+    description: Install AWS CLI
+    steps:
+      - run:
+          name: Install AWS CLI
+          command: |
+            curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+            unzip awscliv2.zip
+            sudo ./aws/install
+
 orbs:
   slack: circleci/slack@4.10.1
 
