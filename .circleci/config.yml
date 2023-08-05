@@ -189,6 +189,16 @@ jobs:
               --tags project=udapeople \
               --stack-name "udapeople-frontend-${CIRCLE_WORKFLOW_ID:0:7}" \
               --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}"
+      - run:
+          name: Add back-end ip to ansible inventory
+          command: |
+            BACKEND_PUBLIC_IP=$(aws ec2 describe-instances \
+              --filters "Name=tag:Name,Values=backend-${CIRCLE_WORKFLOW_ID:0:7}" \
+              --query 'Reservations[*].Instances[*].PublicIpAddress' \
+              --output text
+            )
+            echo $BACKEND_PUBLIC_IP >> .circleci/ansible/inventory.txt
+            cat .circleci/ansible/inventory.txt
       - persist_to_workspace:
           root: ~/
           paths:
@@ -324,26 +334,26 @@ jobs:
             export API_URL=http://${BACKEND_PUBLIC_IP}:3030
             echo $API_URL
             echo $API_URL/api/status
-            # if curl -s $API_URL/api/status | grep "ok"
-            # then
-            #   exit 0
-            # else
-            #   exit 1
-            # fi
-            # When the backend server is not ready, let retry upto 30mins
-            test_result=$(eval curl \
-              --verbose --fail \
-              --retry 360 --retry-max-time 1800 \
-              --url "$API_URL/api/status")
-            if echo $test_result | grep "ok" > /dev/null
+            if curl -s $API_URL/api/status | grep "ok"
             then
-              echo "Backend test passed"
-              echo $test_result
               exit 0
             else
-              echo $test_result
               exit 1
             fi
+            # When the backend server is not ready, let retry upto 30mins
+            # test_result=$(eval curl \
+            #   --verbose --fail \
+            #   --retry 360 --retry-max-time 1800 \
+            #   --url "$API_URL/api/status")
+            # if echo $test_result | grep "ok" > /dev/null
+            # then
+            #   echo "Backend test passed"
+            #   echo $test_result
+            #   exit 0
+            # else
+            #   echo $test_result
+            #   exit 1
+            # fi
       - run:
           name: Frontend smoke test.
           command: |
