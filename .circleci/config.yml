@@ -338,7 +338,6 @@ jobs:
             then
               exit 0
             else
-
               exit 1
             fi
       - run:
@@ -351,8 +350,8 @@ jobs:
             else
               exit 1
             fi
-      # - destroy-environment
-      # - revert-migrations
+      - destroy-environment
+      - revert-migrations
 
 workflows:
   default:
