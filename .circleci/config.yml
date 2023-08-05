@@ -333,7 +333,7 @@ jobs:
             # When the backend server is not ready, let retry upto 30mins
             test_result=$(eval curl \
               --verbose --fail \
-              --retry 360 --retry-max-time 1800 --retry-all-errors \
+              --retry 360 --retry-max-time 1800 \
               --url "$API_URL/api/status")
             if echo $test_result | grep "ok" > /dev/null
             then
