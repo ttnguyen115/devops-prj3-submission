@@ -29,7 +29,7 @@ commands:
           name: Destroy environments
           when: on_fail
           command: |
-            echo "Destroying environment: << parameters.Workflow_ID >> "
+            echo "Destroying environment: <<parameters.Workflow_ID>> "
             aws s3 rm "s3://udapeople-<<parameters.Workflow_ID>>" --recursive
             aws cloudformation delete-stack --stack-name "udapeople-backend-<<parameters.Workflow_ID>>"
             aws cloudformation delete-stack --stack-name "udapeople-frontend-<<parameters.Workflow_ID>>"
@@ -338,6 +338,7 @@ jobs:
             then
               exit 0
             else
+
               exit 1
             fi
       - run:
@@ -350,8 +351,8 @@ jobs:
             else
               exit 1
             fi
-      - destroy-environment
-      - revert-migrations
+      # - destroy-environment
+      # - revert-migrations
 
 workflows:
   default:
