@@ -324,10 +324,24 @@ jobs:
             export API_URL=http://${BACKEND_PUBLIC_IP}:3030
             echo $API_URL
             echo $API_URL/api/status
-            if curl -s $API_URL/api/status | grep "ok"
+            # if curl -s $API_URL/api/status | grep "ok"
+            # then
+            #   exit 0
+            # else
+            #   exit 1
+            # fi
+            # When the backend server is not ready, let retry upto 30mins
+            test_result=$(eval curl \
+              --verbose --fail \
+              --retry 360 --retry-max-time 1800 --retry-all-errors \
+              --url "$API_URL/api/status")
+            if echo $test_result | grep "ok" > /dev/null
             then
+              echo "Backend test passed"
+              echo $test_result
               exit 0
             else
+              echo $test_result
               exit 1
             fi
       - run:
