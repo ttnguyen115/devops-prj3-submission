@@ -296,9 +296,9 @@ jobs:
           name: Deploy backend
           command: |
             ls
-            export TYPEORM_MIGRATIONS_DIR=./migrations
-            export TYPEORM_ENTITIES=./modules/domain/**/*.entity{.ts,.js}
-            export TYPEORM_MIGRATIONS=./migrations/*.ts
+            export TYPEORM_MIGRATIONS_DIR=./src/migrations
+            export TYPEORM_ENTITIES=./src/modules/domain/**/*.entity.ts
+            export TYPEORM_MIGRATIONS=./src/migrations/*.ts
             cd .circleci/ansible
             cat inventory.txt
             export ANSIBLE_HOST_KEY_CHECKING=False
@@ -322,7 +322,7 @@ jobs:
               --output text
             )
             export API_URL=http://${BACKEND_PUBLIC_IP}:3030
-            if curl -s "${API_URL}/api/status" | grep "ok"
+            if curl -s $API_URL/api/status | grep "ok"
             then
               exit 0
             else
@@ -331,8 +331,8 @@ jobs:
       - run:
           name: Frontend smoke test.
           command: |
-            FRONTEND_URL=http://udapeople-${CIRCLE_WORKFLOW_ID:0:7}.s3-website-${AWS_DEFAULT_REGION}.amazonaws.com
-            if curl -s ${FRONTEND_URL} | grep "Welcome"
+            FRONTEND_URL=http://udapeople-${CIRCLE_WORKFLOW_ID:0:7}.s3-website-${AWS_DEFAULT_REGION}.amazonaws.com/#/employees
+            if curl -s $FRONTEND_URL | grep "Welcome"
             then
               exit 1
             else
