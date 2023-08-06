@@ -212,7 +212,7 @@ jobs:
       - image: python:3.7-alpine3.16
     steps:
       - checkout
-      - install_ansible
+      # - install_ansible
       - run:
           name: Install dependencies
           command: |
