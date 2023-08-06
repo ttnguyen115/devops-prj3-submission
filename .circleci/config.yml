@@ -14,8 +14,9 @@ commands:
       - run:
           name: Install AWS CLI
           command: |
+            sudo apt install -y tar gzip curl
             curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-            unzip awscliv2.zip
+            unzip -qq awscliv2.zip
             sudo ./aws/install
 
   install_ansible:
@@ -89,7 +90,7 @@ jobs:
           name: Build front-end
           command: |
             cd frontend
-            ls -la && npm install
+            npm install
             npm run build
       - save_cache:
           paths: [frontend/node_modules]
@@ -105,7 +106,7 @@ jobs:
           name: Build back-end
           command: |
             cd backend
-            ls -la && npm install
+            npm install
             npm run build
       - save_cache:
           paths: [backend/node_modules]
@@ -117,7 +118,7 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-          keys: [front-test]
+          keys: [frontend-build]
       - run:
           name: test front-end
           command: |
@@ -130,7 +131,7 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-          keys: [backend-test]
+          keys: [backend-build]
       - run:
           name: test back-end
           command: |
@@ -153,14 +154,14 @@ jobs:
             npm audit fix --audit-level=critical --force
             npm audit fix --audit-level=critical --force
             npm audit --audit-level=critical
-      - notify_on_failure
+
   scan-backend:
     docker:
       - image: circleci/node:13.8.0
     steps:
       - checkout
       - restore_cache:
-          keys: [backend-scan]
+          keys: [backend-build]
       - run:
           name: scan-backend
           command: |
@@ -169,7 +170,6 @@ jobs:
             npm audit fix --audit-level=critical --force
             npm audit fix --audit-level=critical --force
             npm audit --audit-level=critical
-      - notify_on_failure
 
   deploy-infrastructure:
     docker:
@@ -216,12 +216,12 @@ jobs:
     steps:
       - checkout
       # - install_ansible
+      - add_ssh_keys:
+          fingerprints: ["df:b2:f0:dc:98:40:da:1a:b1:a7:21:7b:03:17:dc:36:fe:ec:a5:bc"]
       - run:
           name: Install dependencies
           command: |
             apk add --update --no-cache tar gzip ansible aws-cli
-      - add_ssh_keys:
-          fingerprints: ["df:b2:f0:dc:98:40:da:1a:b1:a7:21:7b:03:17:dc:36:fe:ec:a5:bc"]
       - attach_workspace:
           at: ~/
       - run:
@@ -246,7 +246,7 @@ jobs:
           paths:
             - project/backend
       - destroy-environment
-      
+
   run-migrations:
     docker:
       - image: circleci/node:13.8.0
@@ -261,13 +261,13 @@ jobs:
           name: Run migrations
           command: |
             cd backend
-            npm install
+          # npm install
             npm run migrations > migrations_dump.txt
       - run:
           name: Send migration results to kvdb.io
           command: |
             echo https://kvdb.io/KBbMMPLvF2BdMjbVoMc8Dn/migration_${CIRCLE_WORKFLOW_ID:0:7}
-            if grep -q "has been executed successfully." ~/project/backend/migrations_dump.txt
+            if grep -q "success" ~/project/backend/migrations_dump.txt
             then
               curl --insecure https://kvdb.io/KBbMMPLvF2BdMjbVoMc8Dn/migration_${CIRCLE_WORKFLOW_ID:0:7} -d '1'
             fi
@@ -458,10 +458,10 @@ workflows:
       - test-backend:
           requires: [build-backend]
 
-      - scan-frontend:
-          requires: [build-frontend]
       - scan-backend:
           requires: [build-backend]
+      - scan-frontend:
+          requires: [build-frontend]
 
       - deploy-infrastructure:
           requires: [test-frontend, test-backend, scan-frontend, scan-backend]
