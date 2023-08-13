@@ -67,7 +67,7 @@ commands:
           when: on_fail
           command: |
             SUCCESS=$(curl --insecure https://kvdb.io/KBbMMPLvF2BdMjbVoMc8Dn/migration_<<parameters.Workflow_ID>>)
-            if(( $SUCCESS==1 )); 
+            if [[ "$SUCCESS" == "1" ]]
             then
               cd ~/project/backend
               npm install
@@ -408,10 +408,10 @@ jobs:
           name: Update cloudfront distribution
           command: |
             aws cloudformation deploy \
-            --template-file .circleci/files/cloudfront.yml \
-            --stack-name InitialStack \
-            --parameter-overrides WorkflowID=${CIRCLE_WORKFLOW_ID:0:7} \
-            --tags project=udapeople
+              --template-file .circleci/files/cloudfront.yml \
+              --tags project=udapeople \
+              --stack-name "InitialStack" \
+              --parameter-overrides WorkflowID="${CIRCLE_WORKFLOW_ID:0:7}"
       - destroy-environment
       - revert-migrations
 
